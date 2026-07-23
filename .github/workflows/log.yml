@@ -1,8 +1,12 @@
 name: Log SDM reading
 
 on:
+  # PRIMARY trigger: cron-job.org POSTs to this workflow's /dispatches endpoint
+  # hourly at :05 America/Toronto (job: "sdm-logger hourly trigger"). GitHub's own
+  # cron on low-traffic repos is throttled/best-effort, so it is only the BACKUP
+  # below — sparse on purpose to avoid double readings in the same hour.
   schedule:
-    - cron: "7 * * * *"
+    - cron: "37 */6 * * *"
   workflow_dispatch:
     inputs:
       force:
