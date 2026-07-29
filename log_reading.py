@@ -131,6 +131,8 @@ def extract_reading(device):
     mode = traits["sdm.devices.traits.ThermostatMode"]["mode"]
     setpoint = traits.get("sdm.devices.traits.ThermostatTemperatureSetpoint", {})
     cool_setpoint = setpoint.get("coolCelsius")
+    if cool_setpoint is not None:
+        cool_setpoint = round(cool_setpoint, 2)
     hvac = traits["sdm.devices.traits.ThermostatHvac"]["status"]
     return {
         "studio": studio,
