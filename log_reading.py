@@ -67,8 +67,9 @@ def refresh_access_token(config):
         }
     ).encode("utf-8")
 
+    detail = "no response"
     for attempt in range(3):
-        _status, body = request(
+        status, body = request(
             TOKEN_URL,
             method="POST",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -77,10 +78,28 @@ def refresh_access_token(config):
         payload = parse_json(body)
         if payload and payload.get("access_token"):
             return payload["access_token"]
+
+        error = (payload or {}).get("error", "")
+        detail = f"status {status}: {error or body.strip()[:200]}"
+
+        # invalid_grant is permanent — the refresh token is expired or revoked.
+        # Retrying cannot help, and the delay just slows the failure down.
+        if error == "invalid_grant":
+            print(
+                "SDM refresh token rejected (invalid_grant): it is expired or revoked. "
+                "If the OAuth consent screen is still in Testing, Google expires refresh "
+                "tokens after 7 days — publish the app to Production to stop this "
+                "recurring.",
+                file=sys.stderr,
+            )
+            return None
         if attempt < 2:
             time.sleep(2)
 
-    print("failed to refresh SDM access token after 3 attempts", file=sys.stderr)
+    print(
+        f"failed to refresh SDM access token after 3 attempts ({detail})",
+        file=sys.stderr,
+    )
     return None
 
 
