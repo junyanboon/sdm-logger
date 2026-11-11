@@ -1,6 +1,6 @@
 # SDM Logger
 
-Deterministic ground-truth inside-temperature logger for the Dance Annex Weatherman. It reads the two Nest thermostats through Google Smart Device Management and writes one `Kind=observation` row per device to the 🌡️ Thermal Log in Notion.
+Deterministic ground-truth inside-temperature logger for the Dance Annex Weatherman. It reads the two Nest thermostats through Google Smart Device Management and writes one `Kind=observation` row per online device (none while Google reports it OFFLINE) to the 🌡️ Thermal Log in Notion.
 
 ## GitHub secrets
 

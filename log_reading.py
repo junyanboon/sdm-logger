@@ -139,6 +139,19 @@ def read_devices(project_id, access_token):
     return None, 1
 
 
+def is_offline(device):
+    """Google answers for an offline Nest with its last known values, so a row
+    written now would be a fake fresh reading. Only an explicit OFFLINE counts:
+    a missing or unknown Connectivity trait logs as usual."""
+    connectivity = device.get("traits", {}).get("sdm.devices.traits.Connectivity", {})
+    return connectivity.get("status") == "OFFLINE"
+
+
+def device_room(device):
+    relations = device.get("parentRelations") or [{}]
+    return relations[0].get("displayName", device.get("name", "unknown device"))
+
+
 def extract_reading(device):
     traits = device["traits"]
     studio = device["parentRelations"][0]["displayName"]
@@ -275,6 +288,9 @@ def main():
 
     readings = []
     for device in devices:
+        if is_offline(device):
+            print(f"skipped {device_room(device)}: Google reports it OFFLINE, no reading logged")
+            continue
         try:
             readings.append(extract_reading(device))
         except (KeyError, IndexError, TypeError, ValueError) as exc:
