@@ -165,6 +165,9 @@ def extract_reading(device):
     cool_setpoint = setpoint.get("coolCelsius")
     if cool_setpoint is not None:
         cool_setpoint = round(cool_setpoint, 2)
+    heat_setpoint = setpoint.get("heatCelsius")
+    if heat_setpoint is not None:
+        heat_setpoint = round(heat_setpoint, 2)
     hvac = traits["sdm.devices.traits.ThermostatHvac"]["status"]
     return {
         "studio": studio,
@@ -173,6 +176,7 @@ def extract_reading(device):
         "humidity": humidity,
         "mode": mode,
         "cool_setpoint": cool_setpoint,
+        "heat_setpoint": heat_setpoint,
         "hvac": hvac,
     }
 
@@ -197,12 +201,14 @@ def rich_text(content):
 
 
 def notion_page(reading, when_iso):
-    cool_setpoint = reading["cool_setpoint"]
-    setpoint_text = (
-        f"COOL {format_number(cool_setpoint)}"
-        if cool_setpoint is not None
-        else ""
-    )
+    # "COOL n" and/or "HEAT n": the climate sweep reads both back to tell a
+    # hand on the dial from its own command (a HEAT dial change in winter).
+    parts = []
+    if reading["cool_setpoint"] is not None:
+        parts.append(f"COOL {format_number(reading['cool_setpoint'])}")
+    if reading.get("heat_setpoint") is not None:
+        parts.append(f"HEAT {format_number(reading['heat_setpoint'])}")
+    setpoint_text = " ".join(parts)
     notes = (
         f"mode {reading['mode']} · HVAC {reading['hvac']} · "
         f"humidity {format_number(reading['humidity'])}% · via gh-actions"
